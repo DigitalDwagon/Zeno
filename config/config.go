@@ -23,6 +23,8 @@ type Config struct {
 	WARCPrefix                     string   `mapstructure:"warc-prefix"`
 	WARCOperator                   string   `mapstructure:"warc-operator"`
 	CDXDedupeServer                string   `mapstructure:"warc-cdx-dedupe-server"`
+	WARCCompression                string   `mapstructure:"warc-compression"`
+	WARCCompressionDictionary      string   `mapstructure:"warc-compression-dictionary"`
 	WARCTempDir                    string   `mapstructure:"warc-temp-dir"`
 	WARCSize                       int      `mapstructure:"warc-size"`
 	CDXCookie                      string   `mapstructure:"cdx-cookie"`

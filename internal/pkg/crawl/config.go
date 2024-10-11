@@ -1,10 +1,13 @@
 package crawl
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -93,19 +96,21 @@ type Crawl struct {
 	CrawledAssets *ratecounter.Counter
 
 	// WARC settings
-	WARCPrefix         string
-	WARCOperator       string
-	WARCWriter         chan *warc.RecordBatch
-	WARCWriterFinish   chan bool
-	WARCTempDir        string
-	CDXDedupeServer    string
-	WARCFullOnDisk     bool
-	WARCPoolSize       int
-	WARCDedupeSize     int
-	WARCSize           int
-	DisableLocalDedupe bool
-	CertValidation     bool
-	WARCCustomCookie   string
+	WARCPrefix                string
+	WARCOperator              string
+	WARCWriter                chan *warc.RecordBatch
+	WARCWriterFinish          chan bool
+	WARCTempDir               string
+	CDXDedupeServer           string
+	WARCFullOnDisk            bool
+	WARCPoolSize              int
+	WARCCompression           string
+	WARCCompressionDictionary string
+	WARCDedupeSize            int
+	WARCSize                  int
+	DisableLocalDedupe        bool
+	CertValidation            bool
+	WARCCustomCookie          string
 
 	// Crawl HQ settings
 	UseHQ                  bool
@@ -255,6 +260,23 @@ func GenerateCrawlConfig(config *config.Config) (*Crawl, error) {
 	c.WARCDedupeSize = config.WARCDedupeSize
 	c.WARCCustomCookie = config.CDXCookie
 	c.WARCSize = config.WARCSize
+
+	config.WARCCompression = strings.ToUpper(config.WARCCompression)
+	if config.WARCCompression == "NONE" {
+		c.WARCCompression = ""
+	} else if config.WARCCompression == "GZIP" || config.WARCCompression == "ZSTD" {
+		c.WARCCompression = config.WARCCompression
+	} else {
+		c.Log.Fatal("Compression type " + config.WARCCompression + " is unknown.")
+	}
+
+	if config.WARCCompressionDictionary != "" && config.WARCCompression != "ZSTD" {
+		c.Log.Fatal("Compression dictionaries require ZSTD compression to be used for writing WARC files.")
+	}
+	if _, err := os.Stat(config.WARCCompressionDictionary); errors.Is(err, os.ErrNotExist) {
+		c.Log.Fatal("Could not find the WARC compression dictionary.")
+	}
+	c.WARCCompressionDictionary = config.WARCCompressionDictionary
 
 	c.API = config.API
 	c.APIPort = config.APIPort
