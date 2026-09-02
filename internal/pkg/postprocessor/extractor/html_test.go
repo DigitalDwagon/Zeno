@@ -256,3 +256,25 @@ func TestHTMLDataSrc(t *testing.T) {
 		t.Errorf("Expected to find an mp3 audio asset, but none found")
 	}
 }
+
+func TestHTMLBackgroundAttribute(t *testing.T) {
+	html := `
+	<html>
+		<body background="images/body_bg.jpg">
+			<table background="images/table_bg.jpg">
+				<tr>
+					<td class="style1" background="images/Allg_05.jpg" width="605"></td>
+				</tr>
+			</table>
+		</body>
+	</html>`
+	item := setupItem(html)
+
+	assets, err := HTMLAssets(item)
+	if err != nil {
+		t.Errorf("HTMLAssets error = %v", err)
+	}
+	if len(assets) != 3 {
+		t.Errorf("We couldn't extract all [background] attribute assets. Received %d, expected 3", len(assets))
+	}
+}

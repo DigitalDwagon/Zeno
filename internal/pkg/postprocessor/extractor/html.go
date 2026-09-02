@@ -386,6 +386,13 @@ func HTMLAssets(item *models.Item) (assets []*models.URL, err error) {
 		})
 	}
 
+	// Handle the legacy background attribute (e.g. <body>, <table>, <td>, <th>, <tr>)
+	document.Find("[background]").Each(func(_ int, i *goquery.Selection) {
+		if link, exists := i.Attr("background"); exists && link != "" {
+			rawAssets = append(rawAssets, link)
+		}
+	})
+
 	// Extract WACZ files from replayweb embeds (docs: https://replayweb.page/docs/embedding/ )
 	if !slices.Contains(config.Get().DisableHTMLTag, "replay-web-page") {
 		document.Find("replay-web-page[source]").Each(func(index int, i *goquery.Selection) {
